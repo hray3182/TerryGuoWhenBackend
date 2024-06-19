@@ -260,6 +260,7 @@ if __name__ == "__main__":
     # init database
     from database import database
     database.db.create_table()
+    
     app = make_app()
     app.listen(8888)
     # start status updater task in the event loop
