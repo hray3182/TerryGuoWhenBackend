@@ -46,7 +46,6 @@ class Game:
             count = int(result[0][0])
         except Exception as e:
             result = e
-            return result
         return count
     
     
