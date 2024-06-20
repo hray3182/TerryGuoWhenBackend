@@ -94,6 +94,10 @@ class GameWebSocketHandler(tornado.websocket.WebSocketHandler):
             if user.balance < amount:
                 self.write_message(WsResponse("bet", "fail", "Not enough balance").json())
                 return
+            # check nevative amount
+            if amount < 0:
+                self.write_message(WsResponse("bet", "fail", "Amount must be positive").json())
+                return
 
             # create bet
             bet = Game.Bet(gameManager.current_game.id, user, amount, nums)
