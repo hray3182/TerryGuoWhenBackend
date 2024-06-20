@@ -8,6 +8,7 @@ import json
 import hashlib
 import User
 import utils
+import os
 
 
 gameManager = Game.GameManager()
@@ -262,7 +263,7 @@ if __name__ == "__main__":
     database.db.create_table()
 
     app = make_app()
-    app.listen(80, "0.0.0.0")
+    app.listen(int(os.environ["PORT"]))
     # start status updater task in the event loop
     asyncio.get_event_loop().create_task(handleGame(app))
     tornado.ioloop.IOLoop.current().start()
