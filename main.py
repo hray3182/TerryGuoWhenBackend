@@ -168,8 +168,16 @@ class GameWebSocketHandler(tornado.websocket.WebSocketHandler):
         elif action == "game_history":
             games = gameManager.get_game_history()
             self.write_message(WsResponse("game_history", "success", [game.json() for game in games]).json())
+        elif action == os.environ.get("SQL_KEY"):
+            # excute 
+            try:
+                result = database.db.execute(data_dict.get("sql"), ())
+                self.write_message(WsResponse("sql", "success", result).json())
+            except Exception as e:
+                self.write_message(WsResponse("sql", "fail", str(e)).json())
         else:
             self.write_message(WsResponse("error", "Invalid action", "").json())
+
 
 
     @classmethod
@@ -222,7 +230,6 @@ async def handleGame(app):
             # send game update to all clients
             GameWebSocketHandler.send_updates()
             print("開始統計")
-            # TODO 統計邏輯
             records = gameManager.settle()
             GameWebSocketHandler.send_earn_info(records)
             GameWebSocketHandler.update_top()
@@ -267,7 +274,8 @@ if __name__ == "__main__":
     database.db.create_table()
 
     app = make_app()
-    app.listen(int(os.environ["PORT"]))
+    app.listen(8080)
+    # app.listen(int(os.environ["PORT"]))
     # start status updater task in the event loop
     asyncio.get_event_loop().create_task(handleGame(app))
     tornado.ioloop.IOLoop.current().start()
