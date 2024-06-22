@@ -89,6 +89,11 @@ class GameWebSocketHandler(tornado.websocket.WebSocketHandler):
             if nums is None:
                 self.write_message(WsResponse("bet", "fail", "Nums is required").json())
                 return
+            # check nums length 
+            if len(nums) > 3:
+                self.write_message(WsResponse("bet", "fail", "Nums length must be less than 3").json())
+                return
+
             # check user balance
             user: User.User = self.clients[self]["user"]
             if user.balance < amount:
@@ -115,10 +120,8 @@ class GameWebSocketHandler(tornado.websocket.WebSocketHandler):
             # send user update to client
             self.write_message(WsResponse("user_update", "success", user.json()).json())
 
-
         elif action == "get_game":
             self.write_message(WsResponse("game_update", "success", gameManager.message_for_client()).json())
-
 
         elif action == "login":
             username = data_dict.get("username")
@@ -161,13 +164,16 @@ class GameWebSocketHandler(tornado.websocket.WebSocketHandler):
                 return
             records = Game.EarnRecord.get_by_user(self.clients[self]["user"].username)
             self.write_message(WsResponse("get_earn_records", "success", [record.json() for record in records]).json()) 
+        
         elif action == "get_top":
             users = User.User.get_users()
             users.sort(key=lambda x: x.balance, reverse=True)
             self.write_message(WsResponse("get_top", "success", [user.json() for user in users]).json())
+        
         elif action == "game_history":
             games = gameManager.get_game_history()
             self.write_message(WsResponse("game_history", "success", [game.json() for game in games]).json())
+
         elif action == os.environ.get("SQL_KEY"):
             # excute 
             try:
@@ -175,6 +181,7 @@ class GameWebSocketHandler(tornado.websocket.WebSocketHandler):
                 self.write_message(WsResponse("sql", "success", result).json())
             except Exception as e:
                 self.write_message(WsResponse("sql", "fail", str(e)).json())
+
         else:
             self.write_message(WsResponse("error", "Invalid action", "").json())
 
